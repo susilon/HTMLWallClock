@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!--
+
+  _   _ _____ __  __ _ __        __    _ _  ____ _            _    
+ | | | |_   _|  \/  | |\ \      / /_ _| | |/ ___| | ___   ___| | __
+ | |_| | | | | |\/| | | \ \ /\ / / _` | | | |   | |/ _ \ / __| |/ /
+ |  _  | | | | |  | | |__\ V  V / (_| | | | |___| | (_) | (__|   < 
+ |_| |_| |_| |_|  |_|_____\_/\_/ \__,_|_|_|\____|_|\___/ \___|_|\_\
+                  
+    author : susilonurcahyo@gmail.com                    
+    -->
+
+    <title>HTMLWallClock</title>
+
+    <style>            
+        svg {
+            display: block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }   
+    </style>
+</head>
+<body style="overflow:hidden;">
+<svg id="clock-image" style="width: 300px; height: 300px">
+
+    <filter id="innerShadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+        <feOffset in="blur" dx="2.5" dy="2.5"/>
+    </filter>
+
+    <g>
+        <circle id="shadow" style="fill:rgba(0,0,0,0.1)" cx="49%" cy="52%" r="40%" filter="url(#innerShadow)"></circle>
+        <circle id="circle" style="stroke: #FFF; stroke-width: 12px; fill:#c43535" cx="50%" cy="50%" r="39%"></circle>
+    </g>
+    <g>
+        <line x1="50%" y1="50%" x2="50%" y2="29%" transform="rotate(80 100 100)" style="stroke-width: 5px; stroke-linecap:round ; stroke: #fffbf9;" id="hourhand">
+            <animatetransform attributeName="transform"
+                              attributeType="XML"
+                              type="rotate"
+                              dur="43200s"
+                              repeatCount="indefinite"/>
+        </line>
+        <line x1="50%" y1="50%" x2="50%" y2="23%" style="stroke-width: 3px; stroke-linecap:round; stroke: #fdfdfd;" id="minutehand">
+            <animatetransform attributeName="transform"
+                              attributeType="XML"
+                              type="rotate"
+                              dur="3600s"
+                              repeatCount="indefinite"/>
+        </line>
+        <line x1="50%" y1="50%" x2="50%" y2="20%" style="stroke-width: 2px; stroke: #C1EFED;" id="secondhand">
+            <animatetransform attributeName="transform"
+                              attributeType="XML"
+                              type="rotate"
+                              dur="60s"
+                              repeatCount="indefinite"/>
+        </line>
+    </g>
+    <circle id="center" style="fill:#000000; stroke: #C1EFED; stroke-width: 2px;" cx="50%" cy="50%" r="3"></circle>
+</svg>
+
+<script type="text/javascript">
+function shifter(val) {
+  return [val, cx, cy].join(' ');
+}
+
+function getParameterByName(name, url = window.location.href) {
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
+var svgEl = document.querySelector('#clock-image');
+var hourwidth = "5px";
+var minutewidth = "3px";
+var secondwidth = "2px";
+
+clocksize = getParameterByName('clock-size');
+if (clocksize != "" && clocksize != null) {
+    svgEl.style.width = clocksize + 'px';
+    svgEl.style.height = clocksize + 'px';
+
+    hourwidth = Math.ceil(clocksize/300*5) + "px";
+    minutewidth = Math.ceil(clocksize/300*2) + "px";
+    secondwidth = Math.ceil(clocksize/300*2) + "px";
+}
+
+var cx = parseInt(svgEl.style.width)/2;
+var cy = parseInt(svgEl.style.height)/2;
+
+for(var i = 1; i <= 12; i++) {
+  var el = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  el.setAttribute('x1', '50%');
+  el.setAttribute('y1', '15%');
+  el.setAttribute('x2', '50%');
+  el.setAttribute('y2', '20%');
+  el.setAttribute('class', 'line');
+  el.setAttribute('transform', 'rotate(' + (i*360/12) + ' ' + cx + ' ' + cy +')');
+  el.setAttribute('style', 'stroke: #ffffff;');
+  document.querySelector('svg').appendChild(el);
+}
+
+var clockCircle = document.querySelector('#circle');
+var hourHand = document.querySelector('#hourhand');
+var minuteHand = document.querySelector('#minutehand');
+var secondHand = document.querySelector('#secondhand');
+var hourLines = document.querySelectorAll(".line");
+var center = document.querySelector('#center');
+
+hourHand.style.strokeWidth = hourwidth;
+minuteHand.style.strokeWidth = minutewidth;
+secondHand.style.strokeWidth = secondwidth;
+for (let i = 0; i < hourLines.length; i++) {
+    hourLines[i].style.strokeWidth = secondwidth;
+}
+center.setAttribute("r", parseInt(secondwidth)/2*3);
+center.style.strokeWidth = secondwidth;
+
+var hands = [];
+hands.push(document.querySelector('#secondhand > *'));
+hands.push(document.querySelector('#minutehand > *'));
+hands.push(document.querySelector('#hourhand > *'));
+
+var date = new Date();
+var hoursAngle = 360 * date.getHours() / 12 + date.getMinutes() / 2;
+var minuteAngle = 360 * date.getMinutes() / 60;
+var secAngle = 360 * date.getSeconds() / 60;
+
+hands[0].setAttribute('from', shifter(secAngle));
+hands[0].setAttribute('to', shifter(secAngle + 360));
+hands[1].setAttribute('from', shifter(minuteAngle));
+hands[1].setAttribute('to', shifter(minuteAngle + 360));
+hands[2].setAttribute('from', shifter(hoursAngle));
+hands[2].setAttribute('to', shifter(hoursAngle + 360));
+
+circlefill = getParameterByName('circle-fill');
+if (circlefill != "" && circlefill != null) {
+    clockCircle.style.fill = circlefill;
+}
+
+circlestroke = getParameterByName('circle-stroke');
+if (circlestroke != "" && circlestroke != null) {
+    clockCircle.style.stroke = circlestroke;
+}
+
+secondcolor = getParameterByName('second-color');
+if (secondcolor != "" && secondcolor != null) {
+    secondHand.style.stroke = secondcolor;
+    center.style.fill = secondcolor;
+}
+
+secondwidth = getParameterByName('second-width');
+if (secondwidth != "" && secondwidth != null) {
+    secondHand.style.strokeWidth = secondwidth;
+    widthInt = parseInt(secondwidth);
+    center.setAttribute("r", widthInt/2*3);
+    center.style.strokeWidth = widthInt + "px";
+}
+
+minutecolor = getParameterByName('minute-color');
+if (minutecolor != "" && minutecolor != null) {
+    minuteHand.style.stroke = minutecolor;
+}
+
+minutewidth = getParameterByName('minute-width');
+if (minutewidth != "" && minutewidth != null) {
+    minuteHand.style.strokeWidth = minutewidth;
+}
+
+hourcolor = getParameterByName('hour-color');
+if (hourcolor != "" && hourcolor != null) {
+    hourHand.style.stroke = hourcolor;
+}
+
+hourwidth = getParameterByName('hour-width');
+if (hourwidth != "" && hourwidth != null) {
+    hourHand.style.strokeWidth = hourwidth;
+}
+
+linecolor = getParameterByName('line-color');
+if (linecolor != "" && linecolor != null) {
+    for (let i = 0; i < hourLines.length; i++) {
+        hourLines[i].style.stroke = linecolor;
+    }
+}
+
+linewidth = getParameterByName('line-width');
+if (linewidth != "" && linewidth != null) {
+    for (let i = 0; i < hourLines.length; i++) {
+        hourLines[i].style.strokeWidth = linewidth;
+    }
+}
+
+</script>
+</body>
